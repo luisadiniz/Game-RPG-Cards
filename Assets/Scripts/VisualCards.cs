@@ -9,6 +9,9 @@ public class VisualCards : MonoBehaviour {
     public TextMeshProUGUI manaText;
     public TextMeshProUGUI damageText;
     public TextMeshProUGUI typeText;
+    public Image card;
+
+    public Color greenButton;
 
     public void ChangeManaText(string manaVisualText){
 
@@ -26,6 +29,10 @@ public class VisualCards : MonoBehaviour {
         typeText.text = typeVisualText;
     }
 
+    public void HighlightCard(){
+
+        card.color = greenButton;
+    }
 
 
 
