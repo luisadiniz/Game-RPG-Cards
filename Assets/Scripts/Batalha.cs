@@ -20,11 +20,6 @@ public class Batalha : MonoBehaviour {
     [SerializeField]
     private List<VisualCards> cardsVisual = new List<VisualCards>();
 
-    Card card1 = new Card();
-    Card card2 = new Card();
-    Card card3 = new Card();
-    Card card4 = new Card();
-    Card card5 = new Card();
 
     private List<Card> playerDeck = new List<Card>();
 
@@ -37,11 +32,17 @@ public class Batalha : MonoBehaviour {
     private TextMeshProUGUI warriorManaText;
     [SerializeField]
     private TextMeshProUGUI enemyLifeText;
+    [SerializeField]
+    private TextMeshProUGUI enemyAttackText;
+    [SerializeField]
+    private TextMeshProUGUI warningText;
 
     private int warriorLife;
     private int warriorMana;
     private int enemyLife;
     private int enemyAttack;
+    private int manaCount;
+
 
     [SerializeField]
     private Button playButton;
@@ -57,27 +58,23 @@ public class Batalha : MonoBehaviour {
 
         playButton.enabled = false;
 
-        enemyLife = 5;
+        enemyLife = 20;
         warriorLife = 15;
         warriorMana = 15;
-        enemyAttack = 2;
+        enemyAttack = 5;
         UpDateTexts();
 
-        DisplayCardsDeck();
+        DisplayCardsDeck(5);
 	}
-	
 
+    public void DisplayCardsDeck(int numberCards) {
 
+        for (int i = 0; i < numberCards; i++)
+        {
+            playerDeck.Add(new Card());
+        }
 
-    public void DisplayCardsDeck() {
-
-        playerDeck.Add(card1);
-        playerDeck.Add(card2);
-        playerDeck.Add(card3);
-        playerDeck.Add(card4);
-        playerDeck.Add(card5);
-
-        for (int i = 0; i < playerDeck.Count; i++)
+        for (int i = 0; i < numberCards; i++)
         {
             int randomIndexMana = Random.Range(0, mana.Count);
             int randomIndexDamage = Random.Range(0, damage.Count);
@@ -85,63 +82,99 @@ public class Batalha : MonoBehaviour {
 
             playerDeck[i].manaCost = mana[randomIndexMana];
             playerDeck[i].damagePoints = damage[randomIndexDamage];
-            playerDeck[i].typeCard = cardType[randomIndexType];
+            playerDeck[i].typeCard = cardType[randomIndexType]; 
 
-            for (int j = 0; j < cardsVisual.Count; j++)
-            {
-                cardsVisual[i].ChangeManaText(mana[randomIndexMana].ToString());
-                cardsVisual[i].ChangeDamageText(damage[randomIndexDamage].ToString());
-                cardsVisual[i].ChangeTypeText(cardType[randomIndexType].ToString());
-            }
+            cardsVisual[i].ChangeManaText(mana[randomIndexMana].ToString());
+            cardsVisual[i].ChangeDamageText(damage[randomIndexDamage].ToString());
+            cardsVisual[i].ChangeTypeText(cardType[randomIndexType]);
         }
+
 
      }
 
     public void SelectCards(int card){
 
-        pressedCards.Add(playerDeck[card]);
+        manaCount = warriorMana;
 
-        playButton.enabled = true;
+        if (pressedCards.Contains(playerDeck[card]))
+          {
+              cardsVisual[card].HighlightCard(false);
+              pressedCards.Remove(playerDeck[card]);
 
-        cardsVisual[card].HighlightCard();
+            for (int i = 0; i < pressedCards.Count; i++)
+            {
+                manaCount += pressedCards[i].manaCost;
+            }
+          }
 
-        for (int i = 0; i < pressedCards.Count; i++)
+        else
         {
-            cardsVisual[card].GetComponent<Button>().enabled = false;
+             pressedCards.Add(playerDeck[card]);
+             cardsVisual[card].HighlightCard(true);
+
+            for (int i = 0; i < pressedCards.Count; i++)
+            {
+                manaCount -= pressedCards[i].manaCost;
+            }
         }
-    }
+
+        if(pressedCards.Count!= 0 && manaCount >= 0){
+            playButton.enabled = true;
+        }
+
+        else if (manaCount < 0)
+            {
+               playButton.enabled = false;
+               warningText.text = "Você não tem mana suficiente!";
+            } 
+
+        Debug.Log(manaCount);
+
+      }
 
     public void PlayButton()
     {
+        manaCount = 0;
+
         UsingCards(pressedCards);
 
         playButton.enabled = false;
 
+        for (int i = 0; i < cardsVisual.Count; i++)
+        {
+            cardsVisual[i].GetComponent<Button>().enabled = true;
+            cardsVisual[i].HighlightCard(false);
+        }
     }
    
     public void UsingCards(List<Card> selectedCards){
 
         for (int i = 0; i < selectedCards.Count; i++)
-        {
-            if (selectedCards[i].typeCard == cardType[0])
             {
-                enemyLife -= selectedCards[i].damagePoints;
+                if (selectedCards[i].typeCard == cardType[0])
+                {
+                    enemyLife -= selectedCards[i].damagePoints;
 
-                warriorMana -= selectedCards[i].manaCost;
+                    warriorMana -= selectedCards[i].manaCost;
+                }
 
-                warriorLife -= enemyAttack;
+                else
+                {
+                    warriorLife += selectedCards[i].damagePoints;
+
+                    warriorMana -= selectedCards[i].manaCost;
+                }
+
+                playerDeck.Remove(selectedCards[i]);
+
             }
+            
+        warriorLife -= enemyAttack;
 
-            else
-            {
-                warriorLife += selectedCards[i].damagePoints;
-
-                warriorMana -= selectedCards[i].manaCost;
-            }
-        }
+        DisplayCardsDeck(selectedCards.Count);
+        selectedCards.Clear();
 
         UpDateTexts();
-
         GameOver();
 
     }
@@ -150,6 +183,7 @@ public class Batalha : MonoBehaviour {
         warriorLifeText.text = warriorLife.ToString();
         warriorManaText.text = warriorMana.ToString();
         enemyLifeText.text = enemyLife.ToString();
+        enemyAttackText.text = enemyAttack.ToString();
     }
 
     public void GameOver(){
@@ -159,8 +193,9 @@ public class Batalha : MonoBehaviour {
             enemyImage.sprite = deadEnemy;
         }
 
-        if(warriorLife == 0){
-            
+        if(warriorLife <= 0){
+            warningText.text = "Game Over!";
+                
         }
     }
         

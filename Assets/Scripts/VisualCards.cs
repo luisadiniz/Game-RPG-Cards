@@ -12,6 +12,7 @@ public class VisualCards : MonoBehaviour {
     public Image card;
 
     public Color greenButton;
+    public Color white;
 
     public void ChangeManaText(string manaVisualText){
 
@@ -29,9 +30,16 @@ public class VisualCards : MonoBehaviour {
         typeText.text = typeVisualText;
     }
 
-    public void HighlightCard(){
+    public void HighlightCard(bool highlight){
 
-        card.color = greenButton;
+        if (highlight)
+        {
+            card.color = greenButton;
+        }
+
+        else {
+            card.color = white;
+        }
     }
 
 
