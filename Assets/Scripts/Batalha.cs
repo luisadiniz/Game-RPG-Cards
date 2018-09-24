@@ -20,7 +20,6 @@ public class Batalha : MonoBehaviour {
     [SerializeField]
     private List<VisualCards> cardsVisual = new List<VisualCards>();
 
-
     private List<Card> playerDeck = new List<Card>();
 
     private List<Card> pressedCards = new List<Card>();
@@ -30,67 +29,62 @@ public class Batalha : MonoBehaviour {
     private TextMeshProUGUI warriorLifeText;
     [SerializeField]
     private TextMeshProUGUI warriorManaText;
-    [SerializeField]
-    private TextMeshProUGUI enemyLifeText;
-    [SerializeField]
-    private TextMeshProUGUI enemyAttackText;
+
     [SerializeField]
     private TextMeshProUGUI warningText;
 
     private int warriorLife;
     private int warriorMana;
-    private int enemyLife;
-    private int enemyAttack;
     private int manaCount;
 
 
     [SerializeField]
     private Button playButton;
+    [SerializeField]
+    private GameObject newEnemyButton;
+
 
     [SerializeField]
-    private Image enemyImage;
-    [SerializeField]
-    private Sprite deadEnemy;
+    VisualEnemy visualEnemy;
 
-
+    private int roundNum;
 
     void Start () {
 
         playButton.enabled = false;
 
-        enemyLife = 20;
+        visualEnemy.CreateNewEnemy(3, 5);
+
         warriorLife = 15;
         warriorMana = 15;
-        enemyAttack = 5;
+
+        roundNum = 0;
         UpDateTexts();
 
         DisplayCardsDeck(5);
+
+        newEnemyButton.SetActive(false);
+
 	}
 
     public void DisplayCardsDeck(int numberCards) {
 
         for (int i = 0; i < numberCards; i++)
         {
-            playerDeck.Add(new Card());
-        }
-
-        for (int i = 0; i < numberCards; i++)
-        {
             int randomIndexMana = Random.Range(0, mana.Count);
             int randomIndexDamage = Random.Range(0, damage.Count);
             int randomIndexType = Random.Range(0, cardType.Count);
-
-            playerDeck[i].manaCost = mana[randomIndexMana];
-            playerDeck[i].damagePoints = damage[randomIndexDamage];
-            playerDeck[i].typeCard = cardType[randomIndexType]; 
-
-            cardsVisual[i].ChangeManaText(mana[randomIndexMana].ToString());
-            cardsVisual[i].ChangeDamageText(damage[randomIndexDamage].ToString());
-            cardsVisual[i].ChangeTypeText(cardType[randomIndexType]);
+         
+            playerDeck.Add(new Card(mana[randomIndexMana], damage[randomIndexDamage],cardType[randomIndexType]));
         }
 
-
-     }
+        for (int i = 0; i < playerDeck.Count; i++)
+        {
+            cardsVisual[i].ChangeManaText(playerDeck[i].manaCost.ToString());
+            cardsVisual[i].ChangeDamageText(playerDeck[i].damagePoints.ToString());
+            cardsVisual[i].ChangeTypeText(playerDeck[i].typeCard);
+        }
+    }
 
     public void SelectCards(int card){
 
@@ -100,23 +94,19 @@ public class Batalha : MonoBehaviour {
           {
               cardsVisual[card].HighlightCard(false);
               pressedCards.Remove(playerDeck[card]);
-
-            for (int i = 0; i < pressedCards.Count; i++)
-            {
-                manaCount += pressedCards[i].manaCost;
-            }
           }
 
         else
         {
              pressedCards.Add(playerDeck[card]);
              cardsVisual[card].HighlightCard(true);
-
-            for (int i = 0; i < pressedCards.Count; i++)
-            {
-                manaCount -= pressedCards[i].manaCost;
-            }
         }
+
+        for (int i = 0; i < pressedCards.Count; i++)
+        {
+            manaCount -= pressedCards[i].manaCost;
+        }
+
 
         if(pressedCards.Count!= 0 && manaCount >= 0){
             playButton.enabled = true;
@@ -128,13 +118,12 @@ public class Batalha : MonoBehaviour {
                warningText.text = "Você não tem mana suficiente!";
             } 
 
-        Debug.Log(manaCount);
-
       }
 
     public void PlayButton()
     {
         manaCount = 0;
+        warningText.text = "";
 
         UsingCards(pressedCards);
 
@@ -150,53 +139,75 @@ public class Batalha : MonoBehaviour {
     public void UsingCards(List<Card> selectedCards){
 
         for (int i = 0; i < selectedCards.Count; i++)
+        {
+            if (selectedCards[i].typeCard == cardType[0])
             {
-                if (selectedCards[i].typeCard == cardType[0])
-                {
-                    enemyLife -= selectedCards[i].damagePoints;
+                visualEnemy.enemy.enemyLife -= selectedCards[i].damagePoints;
 
-                    warriorMana -= selectedCards[i].manaCost;
-                }
+                warriorMana -= selectedCards[i].manaCost;
+             }
 
-                else
-                {
-                    warriorLife += selectedCards[i].damagePoints;
+             else
+            {
+                warriorLife += selectedCards[i].damagePoints;
 
-                    warriorMana -= selectedCards[i].manaCost;
-                }
-
-                playerDeck.Remove(selectedCards[i]);
-
+                warriorMana -= selectedCards[i].manaCost;
             }
-            
-        warriorLife -= enemyAttack;
+
+            playerDeck.Remove(selectedCards[i]);
+         }
+
+        warriorLife -= visualEnemy.enemy.enemyAttack;
+
+        if (warriorLife > 15) 
+        { warriorLife = 15; }
 
         DisplayCardsDeck(selectedCards.Count);
         selectedCards.Clear();
 
         UpDateTexts();
         GameOver();
-
     }
 
     public void UpDateTexts(){
         warriorLifeText.text = warriorLife.ToString();
         warriorManaText.text = warriorMana.ToString();
-        enemyLifeText.text = enemyLife.ToString();
-        enemyAttackText.text = enemyAttack.ToString();
+        visualEnemy.EnemyTexts();
+
     }
 
     public void GameOver(){
 
-        if(enemyLife <= 0){
+        if(visualEnemy.enemy.enemyLife <= 0){
 
-            enemyImage.sprite = deadEnemy;
+            visualEnemy.DeadEnemySprite();
+            warningText.text = "Game Over!";
+
+            newEnemyButton.SetActive(true);
+
         }
 
         if(warriorLife <= 0){
             warningText.text = "Game Over!";
-                
+                            
         }
+    }
+
+    public void NewEnemyButton(){
+
+        visualEnemy.CreateNewEnemy(5, 10);
+
+        warriorLife = 15;
+        warriorMana = 15;
+
+        UpDateTexts();
+
+        playerDeck = new List<Card>();
+        DisplayCardsDeck(5);
+
+        warningText.text = "";
+
+        newEnemyButton.SetActive(false);
     }
         
 
