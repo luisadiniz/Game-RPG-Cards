@@ -36,6 +36,10 @@ public class Batalha : MonoBehaviour {
     private int warriorLife;
     private int warriorMana;
     private int manaCount;
+    private int damageCount;
+
+    private bool running;
+
 
 
     [SerializeField]
@@ -47,11 +51,17 @@ public class Batalha : MonoBehaviour {
     [SerializeField]
     VisualEnemy visualEnemy;
 
+    [SerializeField]
+    private TextMeshProUGUI warningEnemyText;
+    [SerializeField]
+    private TextMeshProUGUI warningWarriorText;
+
     private int roundNum;
 
     void Start () {
 
         playButton.enabled = false;
+        ClearWarningTexts();
 
         visualEnemy.CreateNewEnemy(3, 5);
 
@@ -60,6 +70,8 @@ public class Batalha : MonoBehaviour {
 
         roundNum = 0;
         UpDateTexts();
+        visualEnemy.EnemyTexts();
+
 
         DisplayCardsDeck(5);
 
@@ -110,6 +122,8 @@ public class Batalha : MonoBehaviour {
 
         if(pressedCards.Count!= 0 && manaCount >= 0){
             playButton.enabled = true;
+            warningText.text = "";
+
         }
 
         else if (manaCount < 0)
@@ -134,8 +148,10 @@ public class Batalha : MonoBehaviour {
             cardsVisual[i].GetComponent<Button>().enabled = true;
             cardsVisual[i].HighlightCard(false);
         }
+
     }
    
+
     public void UsingCards(List<Card> selectedCards){
 
         for (int i = 0; i < selectedCards.Count; i++)
@@ -145,6 +161,7 @@ public class Batalha : MonoBehaviour {
                 visualEnemy.enemy.enemyLife -= selectedCards[i].damagePoints;
 
                 warriorMana -= selectedCards[i].manaCost;
+
              }
 
              else
@@ -155,25 +172,32 @@ public class Batalha : MonoBehaviour {
             }
 
             playerDeck.Remove(selectedCards[i]);
+
+            StartCoroutine(WarriorAttackDelay(selectedCards[i].damagePoints));
          }
 
         warriorLife -= visualEnemy.enemy.enemyAttack;
 
-        if (warriorLife > 15) 
+        if (warriorLife > 15)
         { warriorLife = 15; }
 
         DisplayCardsDeck(selectedCards.Count);
         selectedCards.Clear();
 
-        UpDateTexts();
-        GameOver();
+        StartCoroutine(EnemyAttackDelay(selectedCards));
+       
     }
 
     public void UpDateTexts(){
         warriorLifeText.text = warriorLife.ToString();
         warriorManaText.text = warriorMana.ToString();
-        visualEnemy.EnemyTexts();
 
+    }
+
+    public void ClearWarningTexts(){
+        warningText.text = "";
+        warningEnemyText.text = "";
+        warningWarriorText.text = "";
     }
 
     public void GameOver(){
@@ -183,7 +207,7 @@ public class Batalha : MonoBehaviour {
             visualEnemy.DeadEnemySprite();
             warningText.text = "Game Over!";
 
-            newEnemyButton.SetActive(true);
+            StartCoroutine(EnemyCreateDelay(4));
 
         }
 
@@ -193,14 +217,16 @@ public class Batalha : MonoBehaviour {
         }
     }
 
-    public void NewEnemyButton(){
-
+    public void NewEnemy(){
+        
         visualEnemy.CreateNewEnemy(5, 10);
 
         warriorLife = 15;
         warriorMana = 15;
 
         UpDateTexts();
+        visualEnemy.EnemyTexts();
+
 
         playerDeck = new List<Card>();
         DisplayCardsDeck(5);
@@ -210,6 +236,39 @@ public class Batalha : MonoBehaviour {
         newEnemyButton.SetActive(false);
     }
         
+    IEnumerator EnemyCreateDelay(int seconds){
+        yield return new WaitForSeconds(seconds);
 
+        NewEnemy();
+    }
+
+    IEnumerator WarriorAttackDelay(int sum)
+    {
+        yield return new WaitForSeconds(1);
+
+        warningEnemyText.text = "-" + sum.ToString();
+        visualEnemy.EnemyTexts();
+
+    }
+
+    IEnumerator EnemyAttackDelay(List<Card> selectedCards)
+    {
+        yield return new WaitForSeconds(3);
+
+        warningText.text = "Ataque do Inimigo!";
+
+        warningWarriorText.text = "-" + visualEnemy.enemy.enemyAttack.ToString();
+          
+        UpDateTexts();
+        GameOver();
+
+          StartCoroutine(ClearTextsAfterSeconds());
+    }
+
+    IEnumerator ClearTextsAfterSeconds(){
+        yield return new WaitForSeconds(3);
+
+        ClearWarningTexts();
+    }
 
 }
