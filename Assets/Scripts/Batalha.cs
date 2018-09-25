@@ -161,7 +161,6 @@ public class Batalha : MonoBehaviour {
                 visualEnemy.enemy.enemyLife -= selectedCards[i].damagePoints;
 
                 warriorMana -= selectedCards[i].manaCost;
-
              }
 
              else
@@ -262,7 +261,7 @@ public class Batalha : MonoBehaviour {
         UpDateTexts();
         GameOver();
 
-          StartCoroutine(ClearTextsAfterSeconds());
+        StartCoroutine(ClearTextsAfterSeconds());
     }
 
     IEnumerator ClearTextsAfterSeconds(){
