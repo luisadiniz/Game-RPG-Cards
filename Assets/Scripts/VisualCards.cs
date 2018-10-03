@@ -10,6 +10,7 @@ public class VisualCards : MonoBehaviour {
     public TextMeshProUGUI damageText;
     public TextMeshProUGUI typeText;
     public Image card;
+    public GameObject cardSettings;
 
     public Color greenButton;
     public Color white;
@@ -40,6 +41,10 @@ public class VisualCards : MonoBehaviour {
         else {
             card.color = white;
         }
+    }
+
+    public void EnableCards(bool active){
+        cardSettings.SetActive(active);
     }
 
 
