@@ -6,62 +6,90 @@ using TMPro;
 
 public class VisualEnemy : MonoBehaviour {
 
-    [SerializeField]
-    private TextMeshProUGUI enemy1LifeText;
-    [SerializeField]
-    private TextMeshProUGUI enemy1AttackText;
-    [SerializeField]
-    private TextMeshProUGUI enemy2LifeText;
-    [SerializeField]
-    private TextMeshProUGUI enemy2AttackText;
-
     public List<Sprite> enemyAttackSprites;
     public List<Sprite> enemyDeadSprites;
 
+    public List<Image> enemyImage;
+    public List<TextMeshProUGUI> enemyLifeText;
+    public List<TextMeshProUGUI> enemyAttackText;
 
-    public Image enemyImage1;
-    public Image enemyImage2;
-    public Enemy enemy1;
-    public Enemy enemy2;
+    public List<Button> enemyButton;
 
-    public int randomEnemy1;
-    public int randomEnemy2;
+    public List<GameObject> enemyObject;
 
-    public void EnemyTexts(){
-        enemy1LifeText.text = enemy1.enemyLife.ToString();
-        enemy1AttackText.text = enemy1.enemyAttack.ToString();
+    public Enemy enemies;
 
-        enemy2LifeText.text = enemy2.enemyLife.ToString();
-        enemy2AttackText.text = enemy2.enemyAttack.ToString();
-    }
+    public List<Enemy> enemyList = new List<Enemy>();
 
-    public void CreateNewEnemy(int life, int attack)
+
+    public void CreateNewEnemy(int attack)
     {
-        enemy1 = new Enemy();
-        enemy1.enemyLife = life;
-        enemy1.enemyAttack = attack;
+        int randomNumberEnemies = Random.Range(1, 3);
+        Debug.Log(randomNumberEnemies);
 
-        randomEnemy1 = Random.Range(0, enemyAttackSprites.Count);
-        enemyImage1.sprite = enemyAttackSprites[randomEnemy1];
+        for (int i = 0; i < randomNumberEnemies; i++)
+        {
+            enemies = new Enemy();
+            enemies.enemyAttack = attack;
+            enemies.enemyLife = 5;
 
-        enemy2 = new Enemy();
-        enemy2.enemyLife = life;
-        enemy2.enemyAttack = attack;
+            enemyList.Add(enemies);
+        }
 
-        randomEnemy2 = Random.Range(0, enemyAttackSprites.Count);
-        enemyImage2.sprite = enemyAttackSprites[randomEnemy2];
+        for (int i = 0; i < enemyList.Count; i++)
+        {
+            int randomEnemy = Random.Range(0, enemyAttackSprites.Count);
+            enemyImage[i].sprite = enemyAttackSprites[randomEnemy];
+
+            enemyAttackText[i].text = enemyList[i].enemyLife.ToString();
+
+            enemyObject[i].SetActive(true);
+        }
 
     }
 
-    public void DeadEnemySprite(Image image, int randomEnemy){
-        image.sprite = enemyDeadSprites[randomEnemy];
+    public void EnemyTexts()
+    {
+        for (int i = 0; i < enemyList.Count; i++)
+        {
+            enemyLifeText[i].text = enemyList[i].enemyLife.ToString();
+        }
+     }
+
+
+    public void DeadEnemySprite(){
+
+        for (int i = 0; i < enemyList.Count; i++)
+        {
+            if (enemyList[i].enemyLife <= 0)
+            {
+                enemyImage[i].sprite = enemyDeadSprites[i];
+            }
+        }
     }
 
-    public void EnemyLifeCondition(){
-        if (enemy1.enemyLife < 0)
-        { enemy1.enemyLife = 0; }
+    public void EnemyLifeCondition()
+    {
+        for (int i = 0; i < enemyList.Count; i++)
+        {
+            if (enemyList[i].enemyLife < 0)
+            { enemyList[i].enemyLife = 0; }
+        }
+    }
 
-        if (enemy2.enemyLife < 0)
-        { enemy2.enemyLife = 0; }
+    public void EnemyButtonActivation(bool active)
+    {
+        for (int i = 0; i < enemyButton.Count; i++)
+        {
+            enemyButton[i].enabled = active;
+        }
+    }
+
+    public void DesativateEnemyObject()
+    {
+        for (int i = 0; i < enemyObject.Count; i++)
+        {
+            enemyObject[i].SetActive(false);
+        }
     }
 }

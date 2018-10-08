@@ -28,8 +28,6 @@ public class Batalha : MonoBehaviour {
 
     private List<Card> fullDeck = new List<Card>();
 
-    private List<Enemy> enemyList = new List<Enemy>();
-
     [SerializeField]
     private TextMeshProUGUI warriorLifeText;
     [SerializeField]
@@ -52,14 +50,10 @@ public class Batalha : MonoBehaviour {
     private Button playButton;
     [SerializeField]
     private GameObject restartButton;
-    [SerializeField]
-    private Button enemy1Button;
-    [SerializeField]
-    private Button enemy2Button;
+
 
     [SerializeField]
     VisualEnemy visualEnemy;
-
 
     private bool gameOverCheck;
 
@@ -69,23 +63,22 @@ public class Batalha : MonoBehaviour {
         CreateFullDeck();
         DisplayCardsDeck(5);
 
+        visualEnemy.DesativateEnemyObject();
+
         playButton.enabled = true;
-        enemy1Button.enabled = false;
-        enemy2Button.enabled = false;
+
         restartButton.SetActive(false);
+        visualEnemy.EnemyButtonActivation(false);
 
         warningText.text = "";
 
-        visualEnemy.CreateNewEnemy(3, 5);
+        visualEnemy.CreateNewEnemy(5);
 
-        warriorLife = 15;
+        warriorLife = 20;
         warriorMana = 15;
 
         UpDateTexts();
         visualEnemy.EnemyTexts();
-
-        enemyList.Add(visualEnemy.enemy1);
-        enemyList.Add(visualEnemy.enemy2);
 
 	}
 
@@ -127,10 +120,7 @@ public class Batalha : MonoBehaviour {
                 cardsVisual[i].ChangeTypeText(playerDeck[i].typeCard);
             }
         }
-
     }
-
-
 
     public void SelectCards(int card){
 
@@ -187,14 +177,13 @@ public class Batalha : MonoBehaviour {
             cardsVisual[i].HighlightCard(false);
         }
 
-        enemy1Button.enabled = true;
-        enemy2Button.enabled = true;
+        visualEnemy.EnemyButtonActivation(true);
 
-        if(pressedCards.Count ==0)
+        if(pressedCards.Count == 0)
         {
             warningText.text = "";
 
-            UsingCards(pressedCards, visualEnemy.enemy2);
+            UsingCards(pressedCards, visualEnemy.enemyList[0]);
         }
     }
    
@@ -236,18 +225,18 @@ public class Batalha : MonoBehaviour {
          }
 
 
-        for (int i = 0; i < enemyList.Count; i++)
+        for (int i = 0; i < visualEnemy.enemyList.Count; i++)
         {
-            if(enemyList[i].enemyLife > 0){
+            if(visualEnemy.enemyList[i].enemyLife > 0){
 
-                warriorLife -= enemyList[i].enemyAttack;
+                warriorLife -= visualEnemy.enemyList[i].enemyAttack;
 
-                attackCount += 5;
+                attackCount += visualEnemy.enemyList[i].enemyAttack;
             }
         }
 
-        if (warriorLife > 15)
-        { warriorLife = 15; }
+        if (warriorLife > 20)
+        { warriorLife = 20; }
 
         visualEnemy.EnemyLifeCondition();
 
@@ -259,18 +248,18 @@ public class Batalha : MonoBehaviour {
        
     }
 
-    public void EnemySelection(string enemy)
+    public void EnemySelection(int enemy)
     {
-        if (enemy == "Inimigo 1") 
-        { UsingCards(pressedCards, visualEnemy.enemy1); }
+        if (enemy == 0) 
+        { UsingCards(pressedCards, visualEnemy.enemyList[0]); }
 
-        else
-        {
-            UsingCards(pressedCards, visualEnemy.enemy2);
-        }
+        if (enemy == 1)
+        { UsingCards(pressedCards, visualEnemy.enemyList[1]); }
 
-        enemy1Button.enabled = false;
-        enemy2Button.enabled = false;
+        if(enemy == 2)
+        { UsingCards(pressedCards, visualEnemy.enemyList[2]); }
+
+        visualEnemy.EnemyButtonActivation(false);
     }
 
     public void UpDateTexts(){
@@ -284,26 +273,29 @@ public class Batalha : MonoBehaviour {
 
     public void GameOver(){
 
-        if (visualEnemy.enemy1.enemyLife <= 0)
+        visualEnemy.DeadEnemySprite();
+
+        int deadEnemies = 0;
+
+        for (int i = 0; i < visualEnemy.enemyList.Count; i++)
         {
-            visualEnemy.DeadEnemySprite(visualEnemy.enemyImage1, visualEnemy.randomEnemy1);
+            if (visualEnemy.enemyList[i].enemyLife <= 0)
+            {
+                deadEnemies++;
+                Debug.Log("inimigos mortos: " + deadEnemies);
+            }
+
+            if(deadEnemies == visualEnemy.enemyList.Count)
+            {
+                gameOverCheck = true;
+
+                warningText.text = "Game Over!";
+
+                StartCoroutine(EnemyCreateDelay(4));
+            }
         }
-        if (visualEnemy.enemy2.enemyLife <= 0)
-        {
-            visualEnemy.DeadEnemySprite(visualEnemy.enemyImage2, visualEnemy.randomEnemy2);
-        }
 
-
-        if(visualEnemy.enemy1.enemyLife <= 0 && visualEnemy.enemy2.enemyLife <= 0){
-
-            gameOverCheck = true;
-
-            warningText.text = "Game Over!";
-
-            StartCoroutine(EnemyCreateDelay(4));
-        }
-
-        else if(warriorLife <= 0 || fullDeck.Count == 0)
+        if(warriorLife <= 0 || fullDeck.Count == 0)
         {
             warningText.text = "Game Over!";
 
@@ -313,8 +305,7 @@ public class Batalha : MonoBehaviour {
             }
 
             playButton.enabled = false;
-            enemy1Button.enabled = false;
-            enemy2Button.enabled = false;
+            visualEnemy.EnemyButtonActivation(false);
 
             restartButton.SetActive(true);
         }
@@ -323,8 +314,8 @@ public class Batalha : MonoBehaviour {
 
     public void NewEnemy(){
         
-        visualEnemy.CreateNewEnemy(5, 10);
-        Debug.Log("NEW ENEMY");
+        visualEnemy.CreateNewEnemy(5);
+
         UpDateTexts();
         visualEnemy.EnemyTexts();
 
@@ -361,8 +352,6 @@ public class Batalha : MonoBehaviour {
 
         if (gameOverCheck == false)
         {
-            int enemyAttack = (visualEnemy.enemy1.enemyAttack + visualEnemy.enemy2.enemyAttack) - protectionCount;
-
             warningText.text = "Ataque do Inimigo" + "\n" + "Dano: " + attackCount.ToString();
         }
 

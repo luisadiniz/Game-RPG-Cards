@@ -1,10 +1,10 @@
 ﻿<Properties StartupConfiguration="{4B857062-AF12-7D9E-6934-FF6DBA073128}|">
   <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="Unity.Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Batalha.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/VisualEnemy.cs">
     <Files>
       <File FileName="Assets/Scripts/VisualCards.cs" Line="48" Column="6" />
-      <File FileName="Assets/Scripts/VisualEnemy.cs" Line="52" Column="20" />
-      <File FileName="Assets/Scripts/Batalha.cs" Line="5" Column="13" />
+      <File FileName="Assets/Scripts/VisualEnemy.cs" Line="63" Column="63" />
+      <File FileName="Assets/Scripts/Batalha.cs" Line="356" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
