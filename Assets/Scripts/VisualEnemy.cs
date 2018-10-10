@@ -17,23 +17,20 @@ public class VisualEnemy : MonoBehaviour {
 
     public List<GameObject> enemyObject;
 
-    public Enemy enemies;
-
     public List<Enemy> enemyList = new List<Enemy>();
 
 
     public void CreateNewEnemy(int attack)
     {
-        int randomNumberEnemies = Random.Range(1, 3);
-        Debug.Log(randomNumberEnemies);
+        int randomNumberEnemies = Random.Range(1, 4);
 
         for (int i = 0; i < randomNumberEnemies; i++)
         {
-            enemies = new Enemy();
-            enemies.enemyAttack = attack;
-            enemies.enemyLife = 5;
+            Enemy enemy = new Enemy();
+            enemy.enemyAttack = attack;
+            enemy.enemyLife = 5;
 
-            enemyList.Add(enemies);
+            enemyList.Add(enemy);
         }
 
         for (int i = 0; i < enemyList.Count; i++)
@@ -44,6 +41,7 @@ public class VisualEnemy : MonoBehaviour {
             enemyAttackText[i].text = enemyList[i].enemyLife.ToString();
 
             enemyObject[i].SetActive(true);
+            enemyList[i].enemyType = randomEnemy;
         }
 
     }
@@ -63,7 +61,7 @@ public class VisualEnemy : MonoBehaviour {
         {
             if (enemyList[i].enemyLife <= 0)
             {
-                enemyImage[i].sprite = enemyDeadSprites[i];
+              enemyImage[i].sprite = enemyDeadSprites[enemyList[i].enemyType];
             }
         }
     }
@@ -91,5 +89,10 @@ public class VisualEnemy : MonoBehaviour {
         {
             enemyObject[i].SetActive(false);
         }
+    }
+
+    public void ClearEnemyList()
+    {
+        enemyList.Clear();
     }
 }

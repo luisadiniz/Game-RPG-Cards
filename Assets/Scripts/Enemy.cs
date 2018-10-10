@@ -9,5 +9,7 @@ public class Enemy {
     public int enemyLife;
     public int enemyAttack;
 
+    public int enemyType;
+
 
 }

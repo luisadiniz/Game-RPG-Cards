@@ -74,7 +74,7 @@ public class Batalha : MonoBehaviour {
 
         visualEnemy.CreateNewEnemy(5);
 
-        warriorLife = 20;
+        warriorLife = 50;
         warriorMana = 15;
 
         UpDateTexts();
@@ -192,7 +192,6 @@ public class Batalha : MonoBehaviour {
 
         damageCount = 0;
         protectionCount = 0;
-
         attackCount = 0;
 
         for (int i = 0; i < selectedCards.Count; i++)
@@ -208,8 +207,6 @@ public class Batalha : MonoBehaviour {
 
              else
             {
-                warriorLife += selectedCards[i].damagePoints;
-
                 warriorMana -= selectedCards[i].manaCost;
 
                 protectionCount += selectedCards[i].damagePoints;
@@ -224,19 +221,18 @@ public class Batalha : MonoBehaviour {
 
          }
 
-
         for (int i = 0; i < visualEnemy.enemyList.Count; i++)
         {
-            if(visualEnemy.enemyList[i].enemyLife > 0){
-
-                warriorLife -= visualEnemy.enemyList[i].enemyAttack;
-
+            if(visualEnemy.enemyList[i].enemyLife > 0)
+            {
                 attackCount += visualEnemy.enemyList[i].enemyAttack;
             }
         }
 
-        if (warriorLife > 20)
-        { warriorLife = 20; }
+        if(attackCount >= protectionCount)
+        {
+            warriorLife -= (attackCount - protectionCount);
+        }
 
         visualEnemy.EnemyLifeCondition();
 
@@ -245,19 +241,11 @@ public class Batalha : MonoBehaviour {
         selectedCards.Clear();
 
         StartCoroutine(EnemyAttackDelay());
-       
     }
 
     public void EnemySelection(int enemy)
     {
-        if (enemy == 0) 
-        { UsingCards(pressedCards, visualEnemy.enemyList[0]); }
-
-        if (enemy == 1)
-        { UsingCards(pressedCards, visualEnemy.enemyList[1]); }
-
-        if(enemy == 2)
-        { UsingCards(pressedCards, visualEnemy.enemyList[2]); }
+        UsingCards(pressedCards, visualEnemy.enemyList[enemy]);
 
         visualEnemy.EnemyButtonActivation(false);
     }
@@ -282,7 +270,6 @@ public class Batalha : MonoBehaviour {
             if (visualEnemy.enemyList[i].enemyLife <= 0)
             {
                 deadEnemies++;
-                Debug.Log("inimigos mortos: " + deadEnemies);
             }
 
             if(deadEnemies == visualEnemy.enemyList.Count)
@@ -312,8 +299,11 @@ public class Batalha : MonoBehaviour {
 
     }
 
-    public void NewEnemy(){
-        
+    public void NewEnemy()
+    {
+        visualEnemy.ClearEnemyList();
+
+        visualEnemy.DesativateEnemyObject();
         visualEnemy.CreateNewEnemy(5);
 
         UpDateTexts();
@@ -329,7 +319,6 @@ public class Batalha : MonoBehaviour {
 
         restartButton.SetActive(false);
         playButton.enabled = true;
-
 
         warningText.text = "";
     }
