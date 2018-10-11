@@ -75,7 +75,7 @@ public class Batalha : MonoBehaviour {
         visualEnemy.CreateNewEnemy(5);
 
         warriorLife = 50;
-        warriorMana = 15;
+        warriorMana = 50;
 
         UpDateTexts();
         visualEnemy.EnemyTexts();
@@ -118,6 +118,7 @@ public class Batalha : MonoBehaviour {
                 cardsVisual[i].ChangeManaText(playerDeck[i].manaCost.ToString());
                 cardsVisual[i].ChangeDamageText(playerDeck[i].damagePoints.ToString());
                 cardsVisual[i].ChangeTypeText(playerDeck[i].typeCard);
+
             }
         }
     }
@@ -183,7 +184,7 @@ public class Batalha : MonoBehaviour {
         {
             warningText.text = "";
 
-            UsingCards(pressedCards, visualEnemy.enemyList[0]);
+            EnemyAttack();
         }
     }
    
@@ -216,10 +217,9 @@ public class Batalha : MonoBehaviour {
 
             playerDeck.Remove(selectedCards[i]);
             fullDeck.Remove(selectedCards[i]);
-
-            StartCoroutine(WarriorAttackDelay(damageCount));
-
          }
+
+        StartCoroutine(WarriorAttackDelay(damageCount));
 
         for (int i = 0; i < visualEnemy.enemyList.Count; i++)
         {
@@ -241,7 +241,29 @@ public class Batalha : MonoBehaviour {
         selectedCards.Clear();
 
         StartCoroutine(EnemyAttackDelay());
+
     }
+
+    public void EnemyAttack()
+    {
+        for (int i = 0; i < visualEnemy.enemyList.Count; i++)
+        {
+            if (visualEnemy.enemyList[i].enemyLife > 0)
+            {
+                attackCount += visualEnemy.enemyList[i].enemyAttack;
+            }
+        }
+
+        if (attackCount >= protectionCount)
+        {
+            warriorLife -= (attackCount - protectionCount);
+        }
+
+        visualEnemy.EnemyLifeCondition();
+
+        StartCoroutine(EnemyAttackDelay());
+    }
+
 
     public void EnemySelection(int enemy)
     {
@@ -278,7 +300,7 @@ public class Batalha : MonoBehaviour {
 
                 warningText.text = "Game Over!";
 
-                StartCoroutine(EnemyCreateDelay(4));
+                StartCoroutine(EnemyCreateDelay(3));
             }
         }
 
@@ -321,11 +343,15 @@ public class Batalha : MonoBehaviour {
         playButton.enabled = true;
 
         warningText.text = "";
+
+        gameOverCheck = false;
     }
         
 
     IEnumerator WarriorAttackDelay(int sum)
     {
+        Debug.Log("Corrotina Inicio");
+
         yield return new WaitForSeconds(1);
 
         warningText.text = "Seu Ataque" + "\n" + "Dano: " + sum.ToString() + "\n" + "Defende: " + protectionCount.ToString();
@@ -333,6 +359,7 @@ public class Batalha : MonoBehaviour {
         visualEnemy.EnemyTexts();
         deckText.text = "Cartas no Baralho: " + deckCount.ToString();
 
+        Debug.Log("Corrotina");
     }
 
     IEnumerator EnemyAttackDelay()
@@ -369,13 +396,12 @@ public class Batalha : MonoBehaviour {
 
             warriorMana += 2;
 
-            if (warriorMana > 15)
-            { warriorMana = 15; }
-
             UpDateTexts();
 
+            Debug.Log("CLEAR TEXT BEFORE LOOP");
             for (int i = 0; i < cardsVisual.Count; i++)
             {
+                Debug.Log("CLEAR TEXT LOOP");
                 cardsVisual[i].EnableCards(true);
             }
 
