@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,44 +10,61 @@ public class VisualCards : MonoBehaviour {
     public TextMeshProUGUI manaText;
     public TextMeshProUGUI damageText;
     public TextMeshProUGUI typeText;
-    public Image card;
+    public Image cardImage;
     public GameObject cardSettings;
 
     public Color greenButton;
     public Color white;
 
-    public void ChangeManaText(string manaVisualText){
+    public Card card;
 
-        manaText.text = manaVisualText;
+    public void SetCard(Card targetCard)
+    {
+        if (card != null)
+        {
+            card.OnSelectedCard -= HighlightCard;
+
+            card.OnCardsUse -= OnCardUse;
+
+        }
+
+        card = targetCard;
+        CardTexts();
+        card.OnSelectedCard += HighlightCard;
+
+        card.OnCardsUse += OnCardUse;
     }
 
-    public void ChangeDamageText(string damageVisualText)
-    {
 
-        damageText.text = damageVisualText;
-    }
-
-    public void ChangeTypeText(string typeVisualText)
+    public void CardTexts()
     {
-        typeText.text = typeVisualText;
+        manaText.text = card.manaCost.ToString();
+        damageText.text = card.damagePoints.ToString();
+        typeText.text = card.typeCard.ToString();
     }
 
     public void HighlightCard(bool highlight){
 
         if (highlight)
         {
-            card.color = greenButton;
+            cardImage.color = greenButton;
         }
 
-        else {
-            card.color = white;
+        else 
+        {
+            cardImage.color = white;
         }
     }
 
-    public void EnableCards(bool active){
+    public void EnableCards(bool active)
+    {
         cardSettings.SetActive(active);
     }
 
+    private void OnCardUse()
+    {
+        cardSettings.SetActive(false);
 
+    }
 
 }

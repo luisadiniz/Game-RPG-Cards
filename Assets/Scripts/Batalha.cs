@@ -1,13 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
-
-
-public class Batalha : MonoBehaviour {
+public class Batalha : MonoBehaviour
+{
 
     List<string> cardType = new List<string>
     { "Ataque", "Defesa" };
@@ -19,70 +18,92 @@ public class Batalha : MonoBehaviour {
     { 2, 4, 8 };
 
 
-    [SerializeField]
-    private List<VisualCards> cardsVisual = new List<VisualCards>();
-
     private List<Card> playerDeck = new List<Card>();
 
     private List<Card> pressedCards = new List<Card>();
 
     private List<Card> fullDeck = new List<Card>();
 
-    [SerializeField]
-    private TextMeshProUGUI warriorLifeText;
-    [SerializeField]
-    private TextMeshProUGUI warriorManaText;
+    private List<Enemy> enemyList = new List<Enemy>();
 
-    [SerializeField]
-    private TextMeshProUGUI warningText;
-    [SerializeField]
-    private TextMeshProUGUI deckText;
 
     private int warriorLife;
-    private int warriorMana;
+    public int warriorMana;
     private int manaCount;
     private int damageCount;
     private int protectionCount;
     private int deckCount;
     private int attackCount;
 
-    [SerializeField]
-    private Button playButton;
-    [SerializeField]
-    private GameObject restartButton;
+    //properties
+    public int WarriorLife
+    {
+        get { return warriorLife; }
+    }
+    public int AttackCount
+    {
+        get { return attackCount; }
+    }
+    public int DeckCount
+    {
+        get { return fullDeck.Count; }
+    }
+    public int ProtectionCount
+    {
+        get { return protectionCount; }
+    }
+    public List<Card> PressedCards 
+    { get { return pressedCards; }}
 
+    public bool GameOverCheck 
+    { get { return gameOverCheck; } }
 
-    [SerializeField]
-    VisualEnemy visualEnemy;
 
     private bool gameOverCheck;
 
+    [SerializeField]
+    private BatalhaVisual batalhaVisual;
 
-    void Start () {
+    public Action OnWarriorLifeChange;
 
+
+    public void Awake()
+    {
         CreateFullDeck();
-        DisplayCardsDeck(5);
-
-        visualEnemy.DesativateEnemyObject();
-
-        playButton.enabled = true;
-
-        restartButton.SetActive(false);
-        visualEnemy.EnemyButtonActivation(false);
-
-        warningText.text = "";
-
-        visualEnemy.CreateNewEnemy(5);
 
         warriorLife = 50;
-        warriorMana = 50;
+        warriorMana = 80;
 
-        UpDateTexts();
-        visualEnemy.EnemyTexts();
+        DisplayCardsDeck(5);
 
+    }
+
+	public void Start()
+	{
+        EnemySpwaning();
 	}
 
-    public void CreateFullDeck(){
+	public void EnemySpwaning()
+    {
+        int randomNumberEnemies = Random.Range(1, 4);
+
+        for (int i = 0; i < randomNumberEnemies; i++)
+        {
+            Enemy enemy = new Enemy();
+            enemy.enemyAttack = 10;
+            enemy.enemyLife = 5;
+
+            int randomEnemy = Random.Range(1, 3);
+            enemy.enemyType = randomEnemy;
+
+            enemyList.Add(enemy);
+        }
+
+        batalhaVisual.OnEnemiesSpawneds(enemyList);
+    }
+
+    public void CreateFullDeck()
+    {
 
         for (int i = 0; i < cardType.Count; i++)
         {
@@ -90,7 +111,7 @@ public class Batalha : MonoBehaviour {
             {
                 int randomIndexDamage = Random.Range(0, damage.Count);
 
-                Card newCard = new Card(mana[j],damage[randomIndexDamage], cardType[i]);
+                Card newCard = new Card(mana[j], damage[randomIndexDamage], cardType[i]);
                 Card newCard2 = new Card(mana[j], damage[randomIndexDamage], cardType[i]);
 
                 fullDeck.Add(newCard);
@@ -100,43 +121,38 @@ public class Batalha : MonoBehaviour {
     }
 
 
-    public void DisplayCardsDeck(int numberCards) {
-
+    public void DisplayCardsDeck(int numberCards)
+    {
         deckCount = fullDeck.Count;
 
         for (int i = 0; i < numberCards; i++)
         {
-            int randomIndexMana = Random.Range(0, fullDeck.Count);
+            int randomIndexDeck = Random.Range(0, fullDeck.Count);
 
-            playerDeck.Add(fullDeck[randomIndexMana]);
+             playerDeck.Add(fullDeck[randomIndexDeck]);
+             fullDeck.Remove(fullDeck[randomIndexDeck]);
         }
 
-        if (fullDeck.Count != 0)
-        {
-            for (int i = 0; i < playerDeck.Count; i++)
-            {
-                cardsVisual[i].ChangeManaText(playerDeck[i].manaCost.ToString());
-                cardsVisual[i].ChangeDamageText(playerDeck[i].damagePoints.ToString());
-                cardsVisual[i].ChangeTypeText(playerDeck[i].typeCard);
-
-            }
-        }
+        batalhaVisual.OnPlayerHandUpdate(playerDeck);
     }
 
-    public void SelectCards(int card){
 
+    public void SelectCards(int card)
+    {
         manaCount = warriorMana;
 
         if (pressedCards.Contains(playerDeck[card]))
-          {
-              cardsVisual[card].HighlightCard(false);
-              pressedCards.Remove(playerDeck[card]);
-          }
+        {
+            pressedCards.Remove(playerDeck[card]);
+
+            playerDeck[card].OnSelectedCard(false);
+        }
 
         else
         {
-             pressedCards.Add(playerDeck[card]);
-             cardsVisual[card].HighlightCard(true);
+            pressedCards.Add(playerDeck[card]);
+            playerDeck[card].OnSelectedCard(true);
+
         }
 
         for (int i = 0; i < pressedCards.Count; i++)
@@ -144,113 +160,72 @@ public class Batalha : MonoBehaviour {
             manaCount -= pressedCards[i].manaCost;
         }
 
-
-        if (manaCount >= 0)
-        {
-            playButton.enabled = true;
-            warningText.text = "";
-        }
-
-        else if (manaCount < 0)
-            {
-            playButton.enabled = false;
-               warningText.text = "Você não tem mana suficiente!";
-            } 
+        batalhaVisual.UsingVisualCards(manaCount);
 
     }
 
-    public void RestartButton(){
-        
-        SceneManager.LoadScene(0);
 
-    }
-
-    public void PlayButton()
+    public void UsingCards(Enemy enemy)
     {
-        manaCount = 0;
-        warningText.text = "Selecione o Inimigo";
-
-        playButton.enabled = false;
-
-        for (int i = 0; i < cardsVisual.Count; i++)
-        {
-            cardsVisual[i].GetComponent<Button>().enabled = true;
-            cardsVisual[i].HighlightCard(false);
-        }
-
-        visualEnemy.EnemyButtonActivation(true);
-
-        if(pressedCards.Count == 0)
-        {
-            warningText.text = "";
-
-            EnemyAttack();
-        }
-    }
-   
-
-    public void UsingCards(List<Card> selectedCards, Enemy enemy){
-
         damageCount = 0;
         protectionCount = 0;
         attackCount = 0;
 
-        for (int i = 0; i < selectedCards.Count; i++)
+        for (int i = 0; i < pressedCards.Count; i++)
         {
-            if (selectedCards[i].typeCard == cardType[0])
+            if (pressedCards[i].typeCard == cardType[0])
             {
-                enemy.enemyLife -= selectedCards[i].damagePoints;
+                enemy.enemyLife -= pressedCards[i].damagePoints;
 
-                warriorMana -= selectedCards[i].manaCost;
+                warriorMana -= pressedCards[i].manaCost;
 
-                damageCount += selectedCards[i].damagePoints;
-             }
-
-             else
-            {
-                warriorMana -= selectedCards[i].manaCost;
-
-                protectionCount += selectedCards[i].damagePoints;
+                damageCount += pressedCards[i].damagePoints;
             }
 
-            cardsVisual[i].EnableCards(false);
-
-            playerDeck.Remove(selectedCards[i]);
-            fullDeck.Remove(selectedCards[i]);
-         }
-
-        StartCoroutine(WarriorAttackDelay(damageCount));
-
-        for (int i = 0; i < visualEnemy.enemyList.Count; i++)
-        {
-            if(visualEnemy.enemyList[i].enemyLife > 0)
+            else
             {
-                attackCount += visualEnemy.enemyList[i].enemyAttack;
+                warriorMana -= pressedCards[i].manaCost;
+
+                protectionCount += pressedCards[i].damagePoints;
             }
+
+            batalhaVisual.UsingVisualCards(manaCount);
+
+            playerDeck.Remove(pressedCards[i]);
         }
 
-        if(attackCount >= protectionCount)
+        StartCoroutine(batalhaVisual.WarriorAttackDelay(damageCount , enemy));
+
+        EnemyAttack();
+
+
+        if (fullDeck.Count > 0)
         {
-            warriorLife -= (attackCount - protectionCount);
+            DisplayCardsDeck(pressedCards.Count);
         }
 
-        visualEnemy.EnemyLifeCondition();
+        else
+        {
+            for (int i = 0; i < pressedCards.Count; i++)
+            {
+                pressedCards[i].OnCardsUse();
+            }
 
-        DisplayCardsDeck(selectedCards.Count);
+        }
 
-        selectedCards.Clear();
+        pressedCards.Clear();
 
-        StartCoroutine(EnemyAttackDelay());
+        StartCoroutine(batalhaVisual.EnemyAttackDelay());
 
     }
 
     public void EnemyAttack()
     {
-        for (int i = 0; i < visualEnemy.enemyList.Count; i++)
+        for (int i = 0; i < enemyList.Count; i++)
         {
-            if (visualEnemy.enemyList[i].enemyLife > 0)
+            if (enemyList[i].enemyLife > 0)
             {
-                attackCount += visualEnemy.enemyList[i].enemyAttack;
+                attackCount += enemyList[i].enemyAttack;
             }
         }
 
@@ -259,154 +234,78 @@ public class Batalha : MonoBehaviour {
             warriorLife -= (attackCount - protectionCount);
         }
 
-        visualEnemy.EnemyLifeCondition();
 
-        StartCoroutine(EnemyAttackDelay());
+        for (int i = 0; i < enemyList.Count; i++)
+        {
+            enemyList[i].EnemyLifeCondition();
+        }
     }
 
 
     public void EnemySelection(int enemy)
     {
-        UsingCards(pressedCards, visualEnemy.enemyList[enemy]);
+        manaCount = 0;
 
-        visualEnemy.EnemyButtonActivation(false);
+        UsingCards(enemyList[enemy]);
+
+        batalhaVisual.EnemyButtonActivation(false);
     }
 
-    public void UpDateTexts(){
-        warriorLifeText.text = warriorLife.ToString();
-        warriorManaText.text = warriorMana.ToString();
-
-        deckText.text = "Cartas no Baralho: " + deckCount.ToString();
-
-    }
-
-
-    public void GameOver(){
-
-        visualEnemy.DeadEnemySprite();
-
+    public void GameOver()
+    {
         int deadEnemies = 0;
 
-        for (int i = 0; i < visualEnemy.enemyList.Count; i++)
+        for (int i = 0; i < enemyList.Count; i++)
         {
-            if (visualEnemy.enemyList[i].enemyLife <= 0)
+            if (enemyList[i].enemyLife <= 0)
             {
                 deadEnemies++;
             }
 
-            if(deadEnemies == visualEnemy.enemyList.Count)
+            if (deadEnemies == enemyList.Count)
             {
                 gameOverCheck = true;
 
-                warningText.text = "Game Over!";
+                batalhaVisual.GameOverVisual(gameOverCheck);
 
-                StartCoroutine(EnemyCreateDelay(3));
+                NewEnemy();
             }
         }
 
-        if(warriorLife <= 0 || fullDeck.Count == 0)
+        if (warriorLife <= 0 || playerDeck.Count == 0)
         {
-            warningText.text = "Game Over!";
+            gameOverCheck = true;
 
-            for (int i = 0; i < cardsVisual.Count; i++)
-            {
-                cardsVisual[i].GetComponent<Button>().enabled = false;
-            }
+            batalhaVisual.GameOverVisual(gameOverCheck);
 
-            playButton.enabled = false;
-            visualEnemy.EnemyButtonActivation(false);
+            batalhaVisual.SetActiveCardsButton(false);
 
-            restartButton.SetActive(true);
         }
 
     }
 
     public void NewEnemy()
     {
-        visualEnemy.ClearEnemyList();
+        enemyList.Clear();
 
-        visualEnemy.DesativateEnemyObject();
-        visualEnemy.CreateNewEnemy(5);
+        batalhaVisual.DesativateEnemyObject();
+        EnemySpwaning();
 
-        UpDateTexts();
-        visualEnemy.EnemyTexts();
+        //UpDateTexts();
+        //visualEnemy.EnemyTexts();
 
-        playerDeck = new List<Card>();
-        DisplayCardsDeck(5);
 
-        for (int i = 0; i < cardsVisual.Count; i++)
-        {
-            cardsVisual[i].EnableCards(true);
-        }
+        batalhaVisual.SetActiveCardsButton(true);
 
-        restartButton.SetActive(false);
-        playButton.enabled = true;
 
-        warningText.text = "";
+        batalhaVisual.ButtonsInicialState();
 
         gameOverCheck = false;
     }
-        
 
-    IEnumerator WarriorAttackDelay(int sum)
+    public void NewCardsDeck()
     {
-        Debug.Log("Corrotina Inicio");
-
-        yield return new WaitForSeconds(1);
-
-        warningText.text = "Seu Ataque" + "\n" + "Dano: " + sum.ToString() + "\n" + "Defende: " + protectionCount.ToString();
-
-        visualEnemy.EnemyTexts();
-        deckText.text = "Cartas no Baralho: " + deckCount.ToString();
-
-        Debug.Log("Corrotina");
-    }
-
-    IEnumerator EnemyAttackDelay()
-    {
-        yield return new WaitForSeconds(3);
-
-        if (gameOverCheck == false)
-        {
-            warningText.text = "Ataque do Inimigo" + "\n" + "Dano: " + attackCount.ToString();
-        }
-
-        GameOver();
-
-        UpDateTexts();
-
-        StartCoroutine(ClearTextsAfterSeconds());
-    }
-
-    IEnumerator EnemyCreateDelay(int seconds)
-    {
-        yield return new WaitForSeconds(seconds);
-
-        NewEnemy();
-    }
-
-    IEnumerator ClearTextsAfterSeconds()
-    {
-
-        yield return new WaitForSeconds(3);
-
-        if (gameOverCheck == false)
-        {
-            warningText.text = "";
-
-            warriorMana += 2;
-
-            UpDateTexts();
-
-            Debug.Log("CLEAR TEXT BEFORE LOOP");
-            for (int i = 0; i < cardsVisual.Count; i++)
-            {
-                Debug.Log("CLEAR TEXT LOOP");
-                cardsVisual[i].EnableCards(true);
-            }
-
-            playButton.enabled = true;
-
-        }
+        playerDeck = new List<Card>();
+        DisplayCardsDeck(5);  
     }
 }

@@ -6,93 +6,49 @@ using TMPro;
 
 public class VisualEnemy : MonoBehaviour {
 
-    public List<Sprite> enemyAttackSprites;
-    public List<Sprite> enemyDeadSprites;
+    public List<Sprite> enemyAttackSprite;
+    public List<Sprite> enemyDeadSprite;
 
-    public List<Image> enemyImage;
-    public List<TextMeshProUGUI> enemyLifeText;
-    public List<TextMeshProUGUI> enemyAttackText;
+    public Image enemyImage;
+    public TextMeshProUGUI enemyLifeText;
+    public TextMeshProUGUI enemyAttackText;
 
-    public List<Button> enemyButton;
+    public Button enemyButton;
+    public string enemyStatus;
 
-    public List<GameObject> enemyObject;
+    public GameObject enemyObject;
 
-    public List<Enemy> enemyList = new List<Enemy>();
+    private Enemy enemyLogic;
 
-
-    public void CreateNewEnemy(int attack)
+    public void SetEnemy(Enemy targetEnemy)
     {
-        int randomNumberEnemies = Random.Range(1, 4);
+        enemyLogic = targetEnemy;
+        WhenAlive();
+        EnemyTexts();
 
-        for (int i = 0; i < randomNumberEnemies; i++)
-        {
-            Enemy enemy = new Enemy();
-            enemy.enemyAttack = attack;
-            enemy.enemyLife = 5;
-
-            enemyList.Add(enemy);
-        }
-
-        for (int i = 0; i < enemyList.Count; i++)
-        {
-            int randomEnemy = Random.Range(0, enemyAttackSprites.Count);
-            enemyImage[i].sprite = enemyAttackSprites[randomEnemy];
-
-            enemyAttackText[i].text = enemyList[i].enemyLife.ToString();
-
-            enemyObject[i].SetActive(true);
-            enemyList[i].enemyType = randomEnemy;
-        }
-
+        enemyLogic.OnAttackRecived += EnemyTexts;
     }
 
     public void EnemyTexts()
     {
-        for (int i = 0; i < enemyList.Count; i++)
+        enemyLifeText.text = enemyLogic.enemyLife.ToString();
+        enemyAttackText.text = enemyLogic.enemyAttack.ToString();
+
+        if(enemyLogic.enemyLife == 0)
         {
-            enemyLifeText[i].text = enemyList[i].enemyLife.ToString();
+            WhenDead();
         }
      }
 
-
-    public void DeadEnemySprite(){
-
-        for (int i = 0; i < enemyList.Count; i++)
-        {
-            if (enemyList[i].enemyLife <= 0)
-            {
-              enemyImage[i].sprite = enemyDeadSprites[enemyList[i].enemyType];
-            }
-        }
-    }
-
-    public void EnemyLifeCondition()
+    public void WhenAlive()
     {
-        for (int i = 0; i < enemyList.Count; i++)
-        {
-            if (enemyList[i].enemyLife < 0)
-            { enemyList[i].enemyLife = 0; }
-        }
+        enemyImage.sprite = enemyAttackSprite[enemyLogic.enemyType];
     }
 
-    public void EnemyButtonActivation(bool active)
+    public void WhenDead()
     {
-        for (int i = 0; i < enemyButton.Count; i++)
-        {
-            enemyButton[i].enabled = active;
-        }
+        enemyImage.sprite = enemyDeadSprite[enemyLogic.enemyType];
     }
 
-    public void DesativateEnemyObject()
-    {
-        for (int i = 0; i < enemyObject.Count; i++)
-        {
-            enemyObject[i].SetActive(false);
-        }
-    }
 
-    public void ClearEnemyList()
-    {
-        enemyList.Clear();
-    }
 }
