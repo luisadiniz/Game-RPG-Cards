@@ -22,6 +22,8 @@ public class BatalhaVisual : MonoBehaviour
     private Button playButton;
     [SerializeField]
     private GameObject restartButton;
+    [SerializeField]
+    private GameObject playButtonGameObject;
 
     [SerializeField]
     private Batalha batalha;
@@ -36,8 +38,6 @@ public class BatalhaVisual : MonoBehaviour
 	public void Awake()
 	{
         batalha.OnWarriorLifeChange += UpDateTexts;
-
-        DesativateEnemyObject();
 
         playButton.enabled = true;
 
@@ -57,13 +57,13 @@ public class BatalhaVisual : MonoBehaviour
         {
             if (i < list.Count)
             {
-                enemiesVisual[i].gameObject.SetActive(true);
+                enemiesVisual[i].enemyObject.SetActive(true);
 
                 enemiesVisual[i].SetEnemy(list[i]);
             }
             else
             {
-                enemiesVisual[i].gameObject.SetActive(false);
+                enemiesVisual[i].enemyObject.SetActive(false);
             }
         }
     }
@@ -109,14 +109,6 @@ public class BatalhaVisual : MonoBehaviour
         }
     }
 
-    public void DesativateEnemyObject()
-    {
-        for (int i = 0; i < enemiesVisual.Count; i++)
-        {
-            enemiesVisual[i].enemyObject.SetActive(false);
-        }
-    }
-
 
     public void GameOverVisual(bool gameOver)
     {
@@ -127,6 +119,7 @@ public class BatalhaVisual : MonoBehaviour
             playButton.enabled = false;
             EnemyButtonActivation(false);
 
+            playButtonGameObject.SetActive(false);
             restartButton.SetActive(true);
         }
 
@@ -232,6 +225,8 @@ public class BatalhaVisual : MonoBehaviour
     public void ButtonsInicialState()
     {
         restartButton.SetActive(false);
+
+        playButtonGameObject.SetActive(true);
         playButton.enabled = true;
 
         warningText.text = "";

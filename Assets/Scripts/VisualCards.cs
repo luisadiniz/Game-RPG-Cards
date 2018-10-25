@@ -25,7 +25,6 @@ public class VisualCards : MonoBehaviour {
             card.OnSelectedCard -= HighlightCard;
 
             card.OnCardsUse -= OnCardUse;
-
         }
 
         card = targetCard;

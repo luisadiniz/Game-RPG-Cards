@@ -71,8 +71,8 @@ public class Batalha : MonoBehaviour
     {
         CreateFullDeck();
 
-        warriorLife = 50;
-        warriorMana = 80;
+        warriorLife = 30;
+        warriorMana = 20;
 
         DisplayCardsDeck(5);
 
@@ -93,7 +93,7 @@ public class Batalha : MonoBehaviour
             enemy.enemyAttack = 10;
             enemy.enemyLife = 5;
 
-            int randomEnemy = Random.Range(1, 3);
+            int randomEnemy = Random.Range(0, 3);
             enemy.enemyType = randomEnemy;
 
             enemyList.Add(enemy);
@@ -288,12 +288,7 @@ public class Batalha : MonoBehaviour
     {
         enemyList.Clear();
 
-        batalhaVisual.DesativateEnemyObject();
         EnemySpwaning();
-
-        //UpDateTexts();
-        //visualEnemy.EnemyTexts();
-
 
         batalhaVisual.SetActiveCardsButton(true);
 
